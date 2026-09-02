@@ -135,3 +135,69 @@ export const giftUser = asyncHandler(async (req, res) => {
       )
     );
 });
+
+export const getTokens = asyncHandler(async (req, res) => {
+  const TOKEN_REWARD = 0.05;
+  const CLAIM_COOLDOWN_MS = 60 * 1000; // adjust to your ad length / policy
+  const userId = req.user._id;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const now = Date.now();
+  if (user.lastTokenClaimAt && now - user.lastTokenClaimAt.getTime() < CLAIM_COOLDOWN_MS) {
+    return res.status(429).json({
+      message: "You must wait before claiming again",
+      retryAfterMs: CLAIM_COOLDOWN_MS - (now - user.lastTokenClaimAt.getTime()),
+    });
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    {
+      $inc: { learningCredits: TOKEN_REWARD },
+      $set: { lastTokenClaimAt: new Date(now) },
+    },
+    { new: true }
+  );
+
+  return res.status(200).json({
+    message: "Token claimed successfully",
+    learningCredits: updatedUser.learningCredits,
+  });
+});
+
+const TOKEN_TIERS = {
+  t10: { tokens: 10, price: 99 },
+  t50: { tokens: 50, price: 449 },
+  t100: { tokens: 100, price: 899 },
+};
+
+export const buyTokens = asyncHandler(async (req, res) => {
+  const { tierId, method } = req.body;
+  const userId = req.user._id;
+
+  const tier = TOKEN_TIERS[tierId];
+  if (!tier) {
+    return res.status(400).json({ message: "Invalid tier selected" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $inc: { learningCredits: tier.tokens } },
+    { new: true }
+  );
+
+  return res.status(200).json({
+    message: "Payment Done & credits added",
+    learningCredits: updatedUser.learningCredits,
+    tokensAdded: tier.tokens,
+  });
+});

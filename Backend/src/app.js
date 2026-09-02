@@ -8,7 +8,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: `${process.env.FRONTEND_URL}`,
     credentials: true,
   })
 );
@@ -19,7 +19,7 @@ app.use(express.static("public")); // to use static public folder
 app.use(cookieParser()); // to enable CRUD operation on browser cookies
 
 app.use(function (req, res, next) {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.setHeader("Access-Control-Allow-Origin", `${process.env.FRONTEND_URL}`);
   res.setHeader("Access-Control-Allow-Credentials", "true");
   // Add other CORS headers as needed
   next();
@@ -36,6 +36,7 @@ import messageRouter from "./routes/message.routes.js";
 import requestRouter from "./routes/request.routes.js";
 import reportRouter from "./routes/report.routes.js";
 import ratingRouter from "./routes/rating.routes.js";
+import courseRouter from "./routes/course.routes.js";
 
 // Using routes
 app.use("/user", userRouter);
@@ -45,5 +46,6 @@ app.use("/message", messageRouter);
 app.use("/request", requestRouter);
 app.use("/report", reportRouter);
 app.use("/rating", ratingRouter);
+app.use("/course", courseRouter);
 
 export { app };

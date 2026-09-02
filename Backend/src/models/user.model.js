@@ -112,8 +112,12 @@ const userSchema = new Schema(
         ],
         learningCredits: {
             type: Number,
-            default: 0,
+            default: 5,
             min: [0, "learningCredits cannot go negative"],
+        },
+        lastTokenClaimAt: {
+            type: Date,
+            default: null, 
         },
     },
     { timestamps: true }
