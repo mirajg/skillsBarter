@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 import Spinner from "react-bootstrap/Spinner";
 import Form from "react-bootstrap/Form";
 import { skills } from "./Skills";
-import axios from "axios";
 import "./Register.css";
 import Badge from "react-bootstrap/Badge";
 import { v4 as uuidv4 } from "uuid";
@@ -50,9 +49,20 @@ const Register = () => {
         setLoading(true);
         const getUser = async () => {
             try {
-                const { data } = await axios.get("/user/unregistered/getDetails");
-                console.log("User Data: ", data.data);
-                const edu = data?.data?.education;
+                const response = await fetch(
+                    "http://localhost:8000/user/unregistered/getDetails",
+                    { credentials: "include" }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Could not load user data (${response.status})`);
+                }
+
+                const data = await response.json();
+                console.log("User Data:", data);
+
+                const edu = data?.data?.education || [];
+
                 edu.forEach((ele) => {
                     ele.id = uuidv4();
                 });
@@ -323,32 +333,62 @@ const Register = () => {
         });
         return flag;
     };
+
     const handleSaveRegistration = async () => {
         const check = validateRegForm();
-        if (check) {
-            setSaveLoading(true);
-            try {
-                const { data } = await axios.post("/user/unregistered/saveRegDetails", form);
-                toast.success("Details saved successfully");
-            } catch (error) {
-                console.log(error);
-                if (error?.response?.data?.message) {
-                    toast.error(error.response.data.message);
-                } else {
-                    toast.error("Some error occurred");
+
+        if (!check) return;
+
+        setSaveLoading(true);
+
+        try {
+            const response = await fetch(
+                "http://localhost:8000/user/unregistered/saveRegDetails",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(form),
                 }
-            } finally {
-                setSaveLoading(false);
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to save details");
             }
+
+            toast.success("Details saved successfully");
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || "Some error occurred");
+        } finally {
+            setSaveLoading(false);
         }
     };
+
     const handleSaveEducation = async () => {
         const check1 = validateRegForm();
         const check2 = validateEduForm();
         if (check1 && check2) {
             setSaveLoading(true);
             try {
-                const { data } = await axios.post("/user/unregistered/saveEduDetail", form);
+                const response = await fetch(
+                    "http://localhost:8000/user/unregistered/saveEduDetail",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        credentials: "include",
+                        body: JSON.stringify(form),
+                    }
+                );
+
+                const data = await response.json();
+
                 toast.success("Details saved successfully");
             } catch (error) {
                 console.log(error);
@@ -370,7 +410,22 @@ const Register = () => {
         if (check1 && check2 && check3) {
             setSaveLoading(true);
             try {
-                const { data } = await axios.post("/user/unregistered/saveAddDetail", form);
+                const response = await fetch(
+                    "http://localhost:8000/user/unregistered/saveAddDetail",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        credentials: "include",
+                        body: JSON.stringify(form),
+                    }
+                );
+
+                const data = await response.json();
+                console.log(data, 'sd');
+                
+
                 toast.success("Details saved successfully");
             } catch (error) {
                 console.log(error);
@@ -392,17 +447,31 @@ const Register = () => {
         if (check1 && check2 && check3) {
             setSaveLoading(true);
             try {
-                const { data } = await axios.post("/user/registerUser", form);
+                const response = await fetch(
+                    `${import.meta.env.VITE_BACKEND_URL}/user/registerUser`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        credentials: "include",
+                        body: JSON.stringify(form),
+                    }
+                );
+
+                const data = await response.json();
+                
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Registration failed");
+                }
+
                 toast.success("Registration Successful");
-                console.log("Data: ", data.data);
+                console.log("Data:", data.data);
                 navigate("/discover");
             } catch (error) {
-                console.log(error);
-                if (error?.response?.data?.message) {
-                    toast.error(error.response.data.message);
-                } else {
-                    toast.error("Some error occurred");
-                }
+                console.error(error);
+                toast.error(error.message || "Some error occurred");
             } finally {
                 setSaveLoading(false);
             }

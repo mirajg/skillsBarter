@@ -34,11 +34,24 @@ const Rating = () => {
         // Assuming you have a backend API endpoint to handle the form data
         try {
             setLoading(true);
-            const { data } = await axios.post(`/rating/rateUser`, {
-                rating: rating,
-                description: review,
-                ratedUsername: username
+            const response = await fetch("http://localhost:8000/rating/rateUser", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    rating: rating,
+                    description: review,
+                    ratedUsername: username,
+                }),
             });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Something went wrong");
+            }
             console.log(data);
             toast.success(data.message);
             setRating(0);
@@ -50,7 +63,7 @@ const Rating = () => {
                 if (error.response.data.message === "Please Login") {
                     localStorage.removeItem("userInfo");
                     setUser(null);
-                    await axios.get("/auth/logout");
+                    await fetch("http://localhost:8000/auth/logout")
                     navigate("/login");
                 }
             }

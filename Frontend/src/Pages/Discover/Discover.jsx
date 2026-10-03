@@ -36,7 +36,20 @@ const Discover = () => {
     const getUser = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(`/user/registered/getDetails`);
+
+        const response = await fetch(
+          "http://localhost:8000/user/registered/getDetails",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to get user details");
+        }
         console.log(data.data);
         setUser(data.data);
         localStorage.setItem("userInfo", JSON.stringify(data.data));
@@ -53,7 +66,20 @@ const Discover = () => {
     };
     const getDiscoverUsers = async () => {
       try {
-        const { data } = await axios.get("/user/discover");
+        const response = await fetch(
+          "http://localhost:8000/user/discover",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to get user details");
+        }
+
         console.log(data);
         setDiscoverUsers(data.data.forYou);
         setWebDevUsers(data.data.webDev);

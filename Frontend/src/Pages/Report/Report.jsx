@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import "./Report.css";
 import { useParams } from "react-router-dom";
 import { useUser } from "../../util/UserContext";
-import axios from "axios";
 import Spinner from "react-bootstrap/Spinner";
 import { toast } from "react-toastify";
 
@@ -34,7 +33,20 @@ const ReportForm = () => {
         // console.log("formData:", formData);
         try {
             setLoading(true);
-            const { data } = await axios.post(`/report/create`, formData);
+            const response = await fetch("http://localhost:8000/report/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Something went wrong");
+            }
             toast.success(data.message);
             setFormData((prevState) => {
                 return {
@@ -50,7 +62,8 @@ const ReportForm = () => {
                 if (error.response.data.message === "Please Login") {
                     localStorage.removeItem("userInfo");
                     setUser(null);
-                    await axios.get("/auth/logout");
+                    await fetch("http://localhost:8000/auth/logout");
+
                     navigate("/login");
                 }
             }

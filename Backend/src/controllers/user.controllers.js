@@ -175,7 +175,7 @@ export const saveAddUnRegisteredUser = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, user, "User details saved successfully"));
 });
 
-export const registerUser = async (req, res) => {
+export const registerUser = asyncHandler(async (req, res) => {
     console.log("\n******** Inside registerUser function ********");
     // First check if the user is already registered
     // if the user is already registerd than send a message that the user is already registered
@@ -289,7 +289,7 @@ export const registerUser = async (req, res) => {
     res.cookie("accessToken", jwtToken, { httpOnly: true, expires: expiryDate, secure: false });
     res.clearCookie("accessTokenRegistration");
     return res.status(200).json(new ApiResponse(200, newUser, "NewUser registered successfully"));
-};
+});
 
 export const saveRegRegisteredUser = asyncHandler(async (req, res) => {
     console.log("******** Inside saveRegRegisteredUser Function *******");
